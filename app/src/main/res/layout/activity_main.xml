@@ -22,6 +22,16 @@
         android:layout_marginBottom="24dp"
         android:layout_height="wrap_content"
         android:text="Share"
+        app:layout_constraintBottom_toTopOf="@+id/share_new"
+        app:layout_constraintStart_toStartOf="@+id/share_new"
+        app:layout_constraintEnd_toEndOf="@+id/share_new"/>
+
+    <Button
+        android:id="@+id/share_new"
+        android:layout_width="wrap_content"
+        android:layout_marginBottom="24dp"
+        android:layout_height="wrap_content"
+        android:text="Share min api 22"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>

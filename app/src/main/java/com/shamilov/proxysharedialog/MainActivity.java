@@ -1,6 +1,7 @@
 package com.shamilov.proxysharedialog;
 
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -23,17 +24,52 @@ public class MainActivity extends AppCompatActivity {
 
 
     private static final String EXTRA_ORIGINAL_INTENT = "extra.original.intent";
+    private static final String NEW_ACTION_BROADCAST = "new.action.broadcast";
     private String textToShare = "Random text to share with app: %s";
     private static final String EXTRA_REQUEST_CODE = "extra.request.code";
+    private BroadcastReceiver broadcastReceiver;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        registerReceiver();
 
-        findViewById(R.id.share).setOnClickListener(button -> {
-            share(textToShare);
+        findViewById(R.id.share).setOnClickListener(button -> share(textToShare));
+
+        findViewById(R.id.share_new).setOnClickListener(view -> {
+            shareWithIntentSender();
         });
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(broadcastReceiver);
+    }
+
+    private void registerReceiver() {
+        IntentFilter intentFilter = new IntentFilter(NEW_ACTION_BROADCAST);
+        broadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                ComponentName componentName = intent.getParcelableExtra(Intent.EXTRA_CHOSEN_COMPONENT);
+                Log.d("Sharing", "intent redelivered to app: " + componentName.getPackageName());
+            }
+        };
+        registerReceiver(broadcastReceiver, intentFilter);
+    }
+
+    private void shareWithIntentSender() {
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setType("text/plain");
+        intent.putExtra(Intent.EXTRA_TEXT, textToShare);
+
+        Intent redeliverIntent = new Intent(NEW_ACTION_BROADCAST);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, redeliverIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        Intent sender = Intent.createChooser(intent, "Share via", pendingIntent.getIntentSender());
+        startActivity(sender);
     }
 
     private void share(String text) {
